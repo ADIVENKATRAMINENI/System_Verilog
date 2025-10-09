@@ -1,0 +1,16 @@
+C:/SystemVerilog/Work/Datatypes_SV.sv {1 {vlog -work work -vopt -sv -stats=none C:/SystemVerilog/Work/Datatypes_SV.sv
+Questa Intel Starter FPGA Edition-64 vlog 2024.3 Compiler 2024.09 Sep 10 2024
+-- Compiling module datatype_basic
+
+Top level modules:
+	datatype_basic
+
+} {} {}} C:/SystemVerilog/Work/Datatypestwo_SV.sv {1 {vlog -work work -vopt -sv -stats=none C:/SystemVerilog/Work/Datatypestwo_SV.sv
+Questa Intel Starter FPGA Edition-64 vlog 2024.3 Compiler 2024.09 Sep 10 2024
+-- Compiling package Datatypestwo_SV_sv_unit
+-- Compiling module struct_typedef
+
+Top level modules:
+	struct_typedef
+
+} {} {}}

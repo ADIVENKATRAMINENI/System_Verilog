@@ -1,0 +1,21 @@
+module datatype_basic_wave;
+  logic b1 = 1;
+  logic l1 = 0;
+  logic [31:0] i1 = 10;
+  real r1 = 3.14;
+
+  initial begin
+    // 1. Specify the name of the dump file (usually .vcd or .fsdb)
+    // For QuestaSim, .vcd works fine, but .wlf (Waveform Log File) is native.
+    // For general compatibility, let's use the standard $dump* commands.
+    $dumpfile("datatype_basic_wave.vcd"); 
+    
+    // 2. Specify which signals to record. 
+    // (0) means all signals in the current scope, and below.
+    $dumpvars(0, datatype_basic_wave); 
+
+    // Simulation activity starts here
+    #1 b1 = 0; l1 = 1; i1 = 20; r1 = 6.28;
+    #1 $finish;
+  end
+endmodule

@@ -1,0 +1,7 @@
+module enum_example;
+  typedef enum {IDLE, BUSY, DONE} state_t;
+  state_t s = IDLE;
+  always #5 s = s.next;
+  initial #20 $monitor("Time=%0t state=%s", $time, s.name());
+endmodule
+
