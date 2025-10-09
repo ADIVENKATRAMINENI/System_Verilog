@@ -1,0 +1,83 @@
+// File: task_function_example.sv
+module task_function_example;
+
+  // Function returns value
+  function int square(input int num);
+    square = num * num;
+  endfunction
+
+  // Task uses reference and default args
+  task automatic compute(ref int result, input int a, b = 2);
+    result = square(a + b);
+    $display("[%0t] Inside Task: a=%0d b=%0d result=%0d", $time, a, b, result);
+  endtask
+
+  int r;
+
+  initial begin
+    compute(r, 3);
+    $display("[%0t] Outside Task: Final result = %0d", $time, r);
+  end
+endmodule
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ============================================================================
+//  File: task_function_example.sv
+// Topic: Tasks, Functions, and Process Control in SystemVerilog
+// ============================================================================
+//
+// PURPOSE OF TASKS & FUNCTIONS
+// -------------------------------
+//
+// ? Both are used to group reusable blocks of procedural code.
+//    They make code modular, readable, and reusable.
+//
+// FUNCTION
+//   - Used mainly for **computation or returning a value**.
+//   - Must execute in **zero simulation time** (? no #delay, fork, or wait).
+//   - Always returns **one value** using the function name.
+//   - Called inside expressions.
+//
+//   Example: result = square(a + b);
+//
+// TASK
+//   - Used for **actions or multi-step operations**.
+//   - Can include **time delays, waits, or forks** (consumes simulation time).
+//   - Can have **ref/output** arguments to return multiple results.
+//   - Does not return a value directly (use reference arguments).
+//   - Called as a **standalone statement**.
+//
+//   Example: compute(r, 3);
+//
+// -----------------------------------------------------------------------------
+// QUICK RECAP
+// --------------
+// ? Function ? computation only, returns value, no time control.
+// ? Task ? can perform actions (delays, print, fork), no direct return value.
+// ? wait fork ? waits until all forked processes complete.
+// ? disable fork ? stops all forked processes in current scope.
+// ? process handle ? allows explicit control (start/kill/suspend) of processes.
+//
+// Used heavily in **UVM testbenches** for managing parallel activities,
+// timed sequences, and graceful shutdowns of simulations.
+// ============================================================================
+
+
