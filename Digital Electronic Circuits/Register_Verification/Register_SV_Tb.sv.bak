@@ -1,0 +1,155 @@
+`timescale 1ns/1ps
+`define PERIOD 10
+
+
+module simple_register_tb;
+
+logic clk,rst,enable,[7:0]data_in;
+logic [7:0]data_out;
+
+simple_register dut(.clk(clk),.rst(rst),.enable(enable),.data_in(data_in),.data_out(data_out));
+
+initial clk=1'b0;
+always #(`PERIOD/2) clk =~clk;
+
+initial begin
+$timeformat(-9,1,"ns",5);
+$monitor("time =%0t  clk=%b   rst=%b   load=%b   data_in=%b    data_out=%b",$time,clk,rst,enable,data_in,data_out);
+#(`PERIOD *99);
+$display("REGISTER TEST TIMEOUT");
+$finish;
+end
+
+task expect_test (input [7:0] expects) ;
+    if ( data_out !== expects )
+      begin
+        $display ( "data_out=%b, should be %b", data_out, expects );
+        $display ( "REGISTER TEST FAILED" );
+        $finish;
+      end
+  endtask
+
+initial
+    begin
+      @(negedge clk)
+      { rst, enable, data_in } = 10'b1_X_XXXXXXXX; @(negedge clk) expect_test ( 8'hXX );
+      { rst, enable, data_in } = 10'b0_X_XXXXXXXX; @(negedge clk) expect_test ( 8'h00 );
+      { rst, enable, data_in } = 10'b1_0_XXXXXXXX; @(negedge clk) expect_test ( 8'h00 );
+      { rst, enable, data_in } = 10'b1_1_10101010; @(negedge clk) expect_test ( 8'hAA );
+      { rst, enable, data_in } = 10'b1_0_01010101; @(negedge clk) expect_test ( 8'hAA );
+      { rst, enable, data_in } = 10'b0_X_XXXXXXXX; @(negedge clk) expect_test ( 8'h00 );
+      { rst, enable, data_in } = 10'b1_0_XXXXXXXX; @(negedge clk) expect_test ( 8'h00 );
+      { rst, enable, data_in } = 10'b1_1_01010101; @(negedge clk) expect_test ( 8'h55 );
+      { rst, enable, data_in } = 10'b1_0_10101010; @(negedge clk) expect_test ( 8'h55 );
+      $display ( "REGISTER TEST PASSED" );
+      $finish;
+    end
+
+
+
+endmodule
+
+
+
+
+/*
+================================================================================
+Testbench Notes
+================================================================================
+
+1. General Style
+- This testbench follows professional industry style:
+  * Compact stimulus sequences
+  * Self-checking with tasks
+  * Synchronized to clock edges
+  * Includes safety timeout and readable time formatting
+
+--------------------------------------------------------------------------------
+2?Clock & Timing
+- `always #5 clk = ~clk;` 
+  * Generates a 10 ns period clock.
+  * Professional TBs often define `PERIOD` macro for easy change.
+
+- `@(negedge clk)`
+  * Waits for the negative edge of the clock.
+  * Inputs are applied **just before the DUT captures them** on the next active edge (posedge in this case).
+  * Ensures proper timing, avoids race conditions.
+
+- Sequence:
+  1. Apply inputs at negedge
+  2. DUT latches inputs at next posedge
+  3. Output holds for one full clock cycle
+  4. Check output at next negedge
+- ? This explains why some stimulus lines have **two negedges** in sequence.
+
+--------------------------------------------------------------------------------
+3. `$timeformat(-9,1," ns",9);`
+- Formats `$time` for human-readable logs.
+  * `-9` ? scale to nanoseconds
+  * `1` ? decimal precision
+  * `" ns"` ? unit string
+  * `9` ? minimum field width (alignment)
+- Makes simulation logs clear and readable.
+- Optional in beginner TBs, but standard in professional DV.
+
+--------------------------------------------------------------------------------
+4. `$monitor(...)`
+- Automatically prints signal values whenever any listed signal changes.
+- Advantage:
+  * Avoids writing multiple `$display` after every assignment.
+  * Keeps logs consistent.
+
+--------------------------------------------------------------------------------
+5. Simulation Timeout
+- `#(`PERIOD*99); $display(...); $finish;`
+  * Ensures simulation **stops automatically** if DUT hangs or test fails to complete.
+  * Safety feature used in industry TBs to avoid infinite simulations.
+
+--------------------------------------------------------------------------------
+6. Self-Checking Task: `expect_test(input [7:0] expects)`
+- Checks DUT output (`out`) against expected value.
+- `!==` operator includes **X/Z comparison** ? important for unknown/reset states.
+- Automatically prints failure logs and stops simulation (`$finish`) if DUT output is incorrect.
+- Promotes **reusability, readability, and self-checking** in TB.
+
+- Expected values are **never guessed**:
+  * Derived from DUT specification.
+  * For example: reset ? output=0, load=1 ? output=data_in, load=0 ? output holds previous value.
+  * Professional engineers use truth tables, diagrams, or spec to compute expected values.
+
+--------------------------------------------------------------------------------
+7. Input Stimulus Using Concatenation
+- `{rst_, enable, data} = 10'b1_1_10101010;`
+  * Compact assignment of multiple signals in one line.
+  * `X` in bits ? don't-care/unknown input for testing edge cases.
+- Advantages: more readable than assigning signals separately.
+
+--------------------------------------------------------------------------------
+8. Sequence of Tests in Initial Block
+- Each test scenario follows this order:
+  1. Wait negedge ? apply inputs
+  2. Wait one full clock cycle (negedge ? posedge ? next negedge)
+  3. Call `expect_test()` ? check output
+- This ensures:
+  * Inputs are stable before DUT latches them.
+  * Output is correctly updated before verification.
+
+--------------------------------------------------------------------------------
+9. Why Negedge is Used
+- Registers are **edge-triggered** (typically posedge).
+- Apply stimulus at **opposite edge** (negedge) so DUT captures at posedge.
+- Check output **after DUT updates** (next negedge) ? avoids race conditions.
+- Analogy: Set inputs before camera flash (DUT edge) ? then check photo (output).
+
+--------------------------------------------------------------------------------
+10. Key Takeaways
+- Use `$timeformat` for readable time.
+- Use `@(negedge clk)` strategically for stimulus and checking.
+- Use self-checking tasks to **automate verification**.
+- Expected values are calculated from **spec, not guessed**.
+- Safety features like simulation timeout (`#PERIOD*99`) are standard in industry TBs.
+
+================================================================================
+End
+================================================================================
+*/

@@ -1,0 +1,15 @@
+C:/SystemVerilog/Work/Register_SV.sv {1 {vlog -work work -vopt -sv -stats=none {C:\SystemVerilog\Work\Register_SV.sv}
+Questa Intel Starter FPGA Edition-64 vlog 2024.3 Compiler 2024.09 Sep 10 2024
+-- Compiling module simple_register
+
+Top level modules:
+	simple_register
+
+} {} {}} C:/SystemVerilog/Work/Register_SV_Tb.sv {1 {vlog -work work -vopt -sv -stats=none C:/SystemVerilog/Work/Register_SV_Tb.sv
+Questa Intel Starter FPGA Edition-64 vlog 2024.3 Compiler 2024.09 Sep 10 2024
+-- Compiling module simple_register_tb
+
+Top level modules:
+	simple_register_tb
+
+} {} {}}
