@@ -1,0 +1,173 @@
+`timescale 1ns/1ps
+`define PERIOD 10
+
+module counter_sv_TB;
+logic clk,rst,en;
+logic [3:0] count;
+
+counter dut(.clk(clk),.rst(rst),.en(en),.count(count));
+
+initial clk=1'b0;
+always #(`PERIOD/2) clk=~clk;
+
+initial begin
+$timeformat(-9,2,"ns",6);
+$monitor("%0t clk=%b    rst=%b   en=%b   count=%b",$time,clk,rst,en,count);
+#(`PERIOD *99)
+$display("Counter Test Timeout");
+$finish;
+end
+
+task expect_test(input [3:0]expects);
+if(count !== expects)begin
+$display("Error at:%0t,output should be count=%b not the expected_value=%b",$time,count,expects);
+$finish;
+end
+endtask
+
+initial begin
+    // Initialize
+    rst = 1; en = 0;
+    @(negedge clk);
+    rst = 0; en = 1;
+
+    // Test counting sequence
+    repeat (4) @(posedge clk);
+    #1 expect_test(4); // after 4 clocks, should be 4
+
+    // Disable counting
+    en = 0;
+    @(posedge clk);
+    #1 expect_test(4); // should hold
+
+    // Reset again
+    rst = 1;
+    @(posedge clk);
+    #1 expect_test(0);
+    rst = 0;
+
+    $display("? COUNTER TEST PASSED");
+    $finish;
+  end
+
+
+endmodule
+
+
+
+/* 
+================================================================================
+Testbench Notes ? Simple Counter
+================================================================================
+
+1. Purpose
+- This testbench verifies a simple synchronous counter with:
+  * Active-high reset (rst)
+  * Enable (en)
+  * Output (count)
+- Demonstrates proper stimulus timing, self-checking, and race-free sampling.
+
+--------------------------------------------------------------------------------
+2. Reset and Enable Sequence
+initial begin
+  rst = 1; en = 0;
+  @(negedge clk);
+  rst = 0; en = 1;
+end
+
+- At simulation start:
+  * Counter is held in reset (rst=1) to ensure known initial state.
+  * Enable is 0 (counter should not increment).
+- After one negative clock edge:
+  * Reset is deasserted (rst=0), enable asserted (en=1).
+  * Counter begins counting on each rising edge of clk.
+
+--------------------------------------------------------------------------------
+3. Counting and Expect Checks
+repeat (4) @(posedge clk);
+#1 expect(4);
+
+- `repeat(4)` waits for 4 positive edges of the clock.
+- After 4 valid clock cycles (with enable=1), counter should output 4.
+- `#1` ensures we check output **after DUT updates**, avoiding delta cycle race.
+  * Without `#1`, the testbench might read old `count` value (race condition).
+
+--------------------------------------------------------------------------------
+4. Delta Cycle Race (Key Concept)
+- Both DUT and testbench trigger at the same posedge clk.
+- DUT updates `count <= count + 1;` in the **active region**.
+- If testbench samples `count` immediately (same delta), it may see the **old** value.
+- Adding `#1` or even `#0` moves check to next delta (safe zone).
+
+?? Analogy:
+- DUT updates happen *during* the camera flash.
+- Testbench should check *after* the flash, not during it.
+
+--------------------------------------------------------------------------------
+5. Hold Check (Enable Low)
+en = 0;
+@(posedge clk);
+#1 expect(4);
+
+- When enable is 0, counter should hold the same value (no increment).
+- Verifies "hold" functionality when counting is disabled.
+
+--------------------------------------------------------------------------------
+6. Reset Check
+rst = 1;
+@(posedge clk);
+#1 expect(0);
+rst = 0;
+
+- Resets counter to zero again.
+- After posedge with rst=1, count should become 0.
+- Reset behavior is always verified last to confirm stability.
+
+--------------------------------------------------------------------------------
+7. Error and Timeout Handling
+$display("? ERROR ..."); $finish;
+#(`PERIOD*99) $display("Counter Test Timeout"); $finish;
+
+- `$finish` inside `expect()` stops simulation **immediately** when mismatch occurs.
+- Timeout block stops sim if test hangs or never finishes.
+- Both `$finish` statements **end simulation**, whichever is reached first.
+  * Error ? early stop
+  * Timeout ? safety stop (after given time)
+
+--------------------------------------------------------------------------------
+8. `$timeformat(-9,1," ns",9);`
+- Formats simulation time in nanoseconds for readable logs.
+  * `-9` ? scale to ns
+  * `1`  ? 1 decimal place
+  * `" ns"` ? unit string
+  * `9`  ? minimum width for alignment
+- Optional but standard in professional TBs.
+
+--------------------------------------------------------------------------------
+9. Self-Checking with Task `expect(expected)`
+task expect(input int expected);
+  if (count !== expected) begin
+    $display("? ERROR ...");
+    $finish;
+  end else begin
+    $display("? PASS ...");
+  end
+endtask
+
+- `!==` operator detects both value and unknown (X/Z) mismatches.
+- Prints clear PASS/FAIL messages with time and values.
+- Automates checking ? no need for manual `$display` after every test.
+
+--------------------------------------------------------------------------------
+10. Summary ? Key Professional Practices
+? Use @(negedge clk) to apply inputs, @(posedge clk) to sample outputs.  
+? Always include `#1` delay after posedge to avoid delta race.  
+? Add `$timeformat` for clear readable timestamps.  
+? Use self-checking tasks for automated verification.  
+? Add timeout logic to prevent infinite simulations.  
+
+================================================================================
+End of Counter TB Notes
+================================================================================
+*/
+
