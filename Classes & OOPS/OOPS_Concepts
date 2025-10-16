@@ -1,9 +1,9 @@
 /*
 ================================================================================
-SystemVerilog Classes & OOP Notes (For DV / UVM Beginners)
+SystemVerilog Classes & OOP Notes
 ================================================================================
 
-1 — Class Fundamentals
+1. Class Fundamentals
 --------------------------------------------------------------------------------
 1. What is a class?
 - A class is a template to define objects with:
@@ -31,7 +31,7 @@ module tb;
   end
 endmodule
 
-✔ Doubt clarification: 
+Doubt clarification: 
 - `Packet p1 = new(10);` first allocates memory and then calls constructor `new(10)`.
 - If you declare multiple objects like `p1` and `p2`, they are created **sequentially**, one after another.  
 
@@ -67,8 +67,17 @@ endmodule
        Packet p2 = new(2,"Data2");
    - **Sequential Execution:** Each `new()` runs one after another, not concurrently.  
 
+--> `super.new()` — Constructor Chaining
+- Used in child class to call parent constructor for initialization.
+
+
+
+--> `this` Keyword
+- Refers to the **current object’s instance**.
+- Example: `this.id = id_in;`
+
 --------------------------------------------------------------------------------
-2 — Encapsulation & Inheritance
+2. Encapsulation & Inheritance
 --------------------------------------------------------------------------------
 1. Encapsulation
 - Hides internal data; access via functions/tasks
@@ -123,7 +132,7 @@ WriteTrans (Child)
    - Ensures proper initialization of parent members.
 
 --------------------------------------------------------------------------------
-3 — Polymorphism & Virtual Methods
+3. Polymorphism & Virtual Methods
 --------------------------------------------------------------------------------
 1. Polymorphism
 - Base handle can point to multiple child objects
@@ -131,7 +140,7 @@ WriteTrans (Child)
 
 2. Virtual function
 - Declared in parent with `virtual`.
-- **Purpose:** Ensure child’s overridden function executes when called via base handle.
+- **Purpose:** Ensure child?s overridden function executes when called via base handle.
 - Without `virtual`, base handle always calls base method (static binding).
 
 Example:
@@ -162,15 +171,14 @@ Base Handle (Transaction)
       |---> WriteTrans.display()
 
 
-✔ Doubt clarification:
+Doubt clarification:
 - Base handle cannot access child-specific fields **directly**
 - Use **virtual functions** to access child behavior through base handle.
 - Direct child object: access parent + child fields, no virtual needed.
-- Base handle → child object: **virtual needed** to call child methods and access child data dynamically.
+- Base handle ? child object: **virtual needed** to call child methods and access child data dynamically.
 
 
 3. Summary Table
-
 | Concept        | What it Means                          | Example                                  | DV Benefit                                      |
 |----------------|--------------------------------------|------------------------------------------|------------------------------------------------|
 | Encapsulation  | Protect internal data                 | protected addr + set/get functions      | Safe modification of transaction fields       |
@@ -194,39 +202,34 @@ Doubt Clarifications / Notes
 
 3. Accessing child data:
 - Child object: addr (inherited) + data (child) accessible
-- Base handle: cannot access child data directly → use virtual functions
+- Base handle: cannot access child data directly ? use virtual functions
 
 
 4. Virtual functions:
 - Required **only for base handles** pointing to child objects
 - Ensures correct child method runs at runtime (polymorphism)
 - Without virtual: base handle calls **base method only**
-- Non-virtual → compile-time binding → base method always executes via base handle.
-- Virtual → runtime binding → child’s overridden method executes via base handle.
+- Non-virtual ? compile-time binding ? base method always executes via base handle.
+- Virtual ? runtime binding ? child?s overridden method executes via base handle.
 
 
 5. Encapsulation vs Inheritance vs Polymorphism
-- Encapsulation → protect data, controlled access.
-- Inheritance → reuse parent fields/methods, extend child with extra fields.
-- Polymorphism → base handle dynamically executes child methods (requires virtual).
+- Encapsulation ? protect data, controlled access.
+- Inheritance ? reuse parent fields/methods, extend child with extra fields.
+- Polymorphism ? base handle dynamically executes child methods (requires virtual).
 
 ---------------------------------------------------------------------------
 Tips for DV Practice
 -------------------
 - Always calculate expected values from DUT spec.
 - Use tasks/functions for self-checking.
-- Base handles + virtual functions → scalable testbench.
+- Base handles + virtual functions ? scalable testbench.
 - Encapsulation ensures transaction fields are protected.
 - Inheritance avoids redundant code for multiple transaction types.
 - Polymorphism enables generic sequences for multiple child types.
 
 ================================================================================
-End of Notes
-================================================================================
-*/
-
-/*===========================================================================
-SystemVerilog Classes & OOP — FAQ Notes
+SystemVerilog Classes & OOP - FAQ Notes
 ===========================================================================
 
 1. Do `new()` calls run concurrently?
@@ -245,7 +248,7 @@ SystemVerilog Classes & OOP — FAQ Notes
        w.addr = 8'hA5;  // inherited from parent
        w.data = 8'h3C;  // child-specific
        w.display();      // accesses both fields
-   - ✅ Virtual functions are NOT needed here.
+   - ? Virtual functions are NOT needed here.
 
 
 3. Why use virtual functions?
@@ -254,7 +257,7 @@ SystemVerilog Classes & OOP — FAQ Notes
    - Example:
        BaseTrans b;
        b = new WriteTrans();
-       b.display(); // Without virtual → calls BaseTrans.display()
+       b.display(); // Without virtual ? calls BaseTrans.display()
    - Declaring `display()` as `virtual` ensures the **child's overridden function executes**.
 
 
@@ -266,13 +269,87 @@ SystemVerilog Classes & OOP — FAQ Notes
        t[1] = new WriteTrans();
    - To call the correct child method dynamically:
        foreach(t[i]) t[i].display();  // display must be virtual
-   - ✅ This allows **generic testbench sequences** to work for different transaction types using a single base handle.
+   - ? This allows **generic testbench sequences** to work for different transaction types using a single base handle.
 
 ===========================================================================
 Key Takeaways
-- Direct child object → full access, virtual not needed.
-- Base handle → child object → virtual required for runtime binding.
+- Direct child object ? full access, virtual not needed.
+- Base handle ? child object ? virtual required for runtime binding.
 - `new()` calls are sequential, constructors run in order.
 - Virtual functions + base handles = scalable and reusable DV sequences.
 ===========================================================================*/
 
+/*
+=========================================================================================
+
+4 — STATIC MEMBERS, COPYING & INTEGRATION
+-----------------------------------------------------------------------------------------
+Static Variables
+- Belong to the **class**, not the object.
+- Shared among all instances.
+- Useful for counting objects or maintaining common data.
+- Example:
+    static int count = 0;
+    function new(); count++; endfunction
+
+Object Copying
+- Classes are **reference types** (handles, not values).
+- Two types of copying:
+    1. Shallow Copy — Copies only handle, both point to same object.
+    2. Deep Copy — Creates new object, copies contents manually.
+
+Shallow Copy Example:
+    t2 = t1;
+    // Both point to same memory; modifying one affects the other.
+
+Deep Copy Example:
+    function Transaction copy();
+        Transaction t2 = new();
+        t2.data = this.data;
+        return t2;
+    endfunction
+    // Creates a new independent object with same content.
+
+Shallow vs Deep (Quick Table)
+| Type | What is Copied | Independent? | Use Case |
+|-------|----------------|--------------|-----------|
+| Shallow | Handle only | ❌ No | Temporary sharing |
+| Deep | Entire object | ✅ Yes | Scoreboard snapshots |
+
+
+Integration Example:
+- Driver creates Transaction objects using `new()`, randomizes them,
+  and drives to DUT.
+- Static counter keeps track of total transactions created.
+- Combines multiple classes: Transaction + Driver + Testbench.
+
+Example:
+    class Transaction;
+      rand bit [3:0] addr, data;
+      static int count = 0;
+      function new(); count++; endfunction
+    endclass
+
+    class Driver;
+      Transaction t;
+      function void drive();
+        t = new();
+        assert(t.randomize());
+        $display("Driving: addr=%0h data=%0h", t.addr, t.data);
+      endfunction
+    endclass
+
+=========================================================================================
+
+ADVANCED INSIGHTS
+-----------------------------------------------------------------------------------------
+Use virtual base classes when multiple derived types share same interface.
+Always prefer `protected` data + getter/setter for safer access.
+Use `deep copy()` when transactions are passed between monitor & scoreboard.
+Static variables are excellent for tracking created objects or coverage items.
+Polymorphism is key to UVM — everything (driver, monitor, agent) works via base handles.
+
+=========================================================================================
+END OF NOTES
+=========================================================================================
+*/
