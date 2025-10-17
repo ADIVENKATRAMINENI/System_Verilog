@@ -1,0 +1,6 @@
+C:/SystemVerilog/Work/Polymorphism_SV.sv {0 {vlog -work work -vopt -sv -stats=none C:/SystemVerilog/Work/Polymorphism_SV.sv
+Questa Intel Starter FPGA Edition-64 vlog 2024.3 Compiler 2024.09 Sep 10 2024
+** Error: (vlog-13069) C:/SystemVerilog/Work/Polymorphism_SV.sv(26): near "(": syntax error, unexpected '(', expecting #.
+** Error: (vlog-13069) C:/SystemVerilog/Work/Polymorphism_SV.sv(32): near "(": syntax error, unexpected '(', expecting #.
+
+} {3.0 5.0} {}}
