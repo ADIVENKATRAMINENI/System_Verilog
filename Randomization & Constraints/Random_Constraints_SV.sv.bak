@@ -1,0 +1,183 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+---->Compile time  Vs  Runtime
+Compile time = building and preparing the model
+Runtime = actually executing your simulation and testbench
+
+--dynamic binding (virtual functions) is decided at runtime, not compile time.
+That?s why we call it runtime polymorphism.
+
+Ex:
+Compile time ? ?Is your code valid and ready to run??
+Runtime ? ?Now the code is running ? execute the behavior.?
+*/
+
+/*
+================================================================================
+SystemVerilog Randomization & Constraints Notes
+================================================================================
+
+1. Randomization Overview
+--------------------------------------------------------------------------------
+- Randomization allows generating different values for variables at runtime.
+- Example:
+    class packet;
+      rand bit [7:0] addr;
+      rand bit [7:0] data;
+    endclass
+- Use: p.randomize(); generates random values for addr & data.
+
+Doubt clarification:
+- Q: "Why do we need randomize() if variables are declared rand/randc?"
+- A: Declaring rand/randc only marks the variable as randomizable. 
+     randomize() triggers the solver to generate a value **at runtime**, 
+     considering constraints, inheritance, and previous values.  
+
+
+2. rand vs randc
+--------------------------------------------------------------------------------
+- rand: fully random value every time (e.g., rand bit [7:0] a;)
+- randc: cyclic random ? cycles through all values before repeating
+- Use randc when all possible values should appear once before repeat.
+
+
+3. randomize() Method
+--------------------------------------------------------------------------------
+- Triggers the SystemVerilog solver to assign values to rand variables.
+- Returns 1 if successful, 0 if constraints cannot be satisfied.
+- Always check result:
+    if (!p.randomize()) $display("Randomization failed!");
+
+
+4. Constraints
+--------------------------------------------------------------------------------
+- Constraints define rules or limits on random values.
+- Examples:
+    constraint addr_c { addr < 100; }           // Range constraint
+    constraint data_c { data inside {[10:20]}; } // Set membership
+- Types:
+    1. Range: a > 10 && a < 100
+    2. Set membership: b inside {1,3,5,7,9}
+    3. Relational: a < b
+    4. Distribution: addr dist { [0:50] := 1, [51:100] := 5 }
+       (weighted probabilities)
+
+
+5. Conditional Constraints
+--------------------------------------------------------------------------------
+- Constraints applied only under certain conditions.
+- Example:
+    constraint c { if (mode==1) addr<50; else addr>200; }
+
+
+6. Enabling & Disabling Constraints
+--------------------------------------------------------------------------------
+- Each constraint can be turned on/off at runtime:
+    p.addr_c.constraint_mode(0); // disable
+    p.addr_c.constraint_mode(1); // enable
+
+
+7. rand_mode()
+--------------------------------------------------------------------------------
+- Disable randomization for a specific variable:
+    p.addr.rand_mode(0); // addr stays fixed
+
+
+8. Inline (Temporary) Constraints
+--------------------------------------------------------------------------------
+- Override constraints for a single randomization call:
+    p.randomize() with { addr>200; data<50; };
+
+
+9. pre_randomize() & post_randomize()
+--------------------------------------------------------------------------------
+- pre_randomize(): called automatically **before randomization**
+- post_randomize(): called automatically **after randomization**
+- Use cases:
+    - Initialize or adjust variables (pre_randomize)
+    - Logging or validating values (post_randomize)
+
+
+10. Inheritance & Randomization
+--------------------------------------------------------------------------------
+- Child classes inherit parent rand variables and constraints.
+- Randomization considers all constraints together.
+- Example:
+    class base; rand int a; constraint c_base { a>0; } endclass
+    class child extends base; constraint c_child { a<10; } endclass
+- Generated a ? (1,9)
+
+
+11. Handling Randomization Failures
+--------------------------------------------------------------------------------
+- Conflicting constraints make randomize() fail.
+- Always check:
+    if (!p.randomize()) $display("Randomization failed!");
+- Example:
+    constraint c1 { a>100; } constraint c2 { a<50; } ? fails
+
+
+12. DV Example
+--------------------------------------------------------------------------------
+- Randomized packet generation to avoid manually writing hundreds of test cases.
+- Example:
+    class packet;
+      rand bit [3:0] src,dest;
+      rand bit [7:0] payload;
+      constraint valid_range { src inside {[1:8]}; dest inside {[1:8]}; src != dest; }
+      function void display(); $display("src=%0d dest=%0d payload=%0h", src,dest,payload); endfunction
+    endclass
+
+- Output example:
+    src=5 dest=3 payload=9a
+    src=2 dest=7 payload=6e
+    src=8 dest=1 payload=ff
+
+
+13. Connection to UVM
+--------------------------------------------------------------------------------
+- In UVM, all transactions (sequence_items) are randomizable classes.
+- Constraints and randomization logic transfer directly:
+    class packet extends uvm_sequence_item;
+      rand bit [3:0] addr;
+      rand bit [7:0] data;
+      constraint c { addr<10; }
+      `uvm_object_utils(packet)
+    endclass
+- Example usage in sequences:
+    seq_item.randomize() with { addr==5; };
+
+
+14. Key Takeaways / DV Best Practices
+--------------------------------------------------------------------------------
+- Use randomization to **automate stimulus generation** and improve coverage.
+- Constraints guide the solver to generate **legal and meaningful values**.
+- Always check randomize() return value for failure.
+- Use pre/post_randomize() for setup and logging.
+- rand_mode() and constraint_mode() allow **runtime flexibility**.
+- Randomization + constraints + inheritance = powerful DV technique.
+- This knowledge directly applies to UVM transactions (sequence_items).
+
+================================================================================
+End of Notes
+================================================================================
+*/
+
