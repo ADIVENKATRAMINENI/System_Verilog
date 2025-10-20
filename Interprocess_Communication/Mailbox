@@ -1,0 +1,160 @@
+/*=============================================================================
+🧠 SYSTEMVERILOG — MAILBOX CONCEPT 
+=============================================================================
+
+📘 Purpose:
+-----------------------------------------------------------------------------
+A mailbox provides **safe, synchronized communication** between two or moreparallel processes (like Generator → Driver) in SystemVerilog. (or)
+-Mailbox is a communication channel in between two or more parallel processes in systemverilog.
+
+-Instead of using global variables or delays, mailboxes act as a **thread-safeFIFO queue** that handles timing and synchronization automatically.
+
+Used widely in **UVM** for:
+  - Sequencer → Driver communication
+  - Monitor → Scoreboard packet transfer
+
+
+-----------------------------------------------------------------------------
+🔹 1️⃣ Declaration and Creation
+-----------------------------------------------------------------------------
+mailbox mbx;            // declare a mailbox handle
+mbx = new();            // create an *unbounded* mailbox
+
+// or bounded mailbox (fixed size)
+mailbox #(packet) mbx = new(5);  // holds 5 items max
+
+
+-----------------------------------------------------------------------------
+🔹 2️⃣ Common Methods
+-----------------------------------------------------------------------------
+put(item)       → puts item into mailbox (waits if full in bounded type)
+get(item)       → retrieves next item (waits if empty)
+try_put(item)   → non-blocking put; returns 0 if full
+try_get(item)   → non-blocking get; returns 0 if empty
+num()           → returns current number of items
+
+
+-----------------------------------------------------------------------------
+🔹 3️⃣ Producer–Consumer Example (Generator → Driver)
+-----------------------------------------------------------------------------
+class packet;
+  rand bit [7:0] data;
+endclass
+
+module tb;
+  mailbox mbx = new(); // shared mailbox between threads
+
+  // Generator process
+  initial begin
+    packet p;
+    repeat (5) begin
+      p = new();               // create new object
+      p.randomize();           // assign random data
+      mbx.put(p);              // send to mailbox
+      $display("GEN: Sent packet %0d", p.data);
+    end
+  end
+
+  // Driver process
+  initial begin
+    packet q;
+    repeat (5) begin
+      mbx.get(q);              // get from mailbox (blocks if empty)
+      $display("DRV: Got packet %0d", q.data);
+    end
+  end
+endmodule
+
+
+-----------------------------------------------------------------------------
+🔹 4️⃣ Simulation Behavior
+-----------------------------------------------------------------------------
+- Both `initial` blocks run **concurrently** (parallel processes).
+- When Generator executes `mbx.put(p)`:
+    → The Driver, if waiting at `get(q)`, immediately wakes up.
+- This synchronization is **automatic** (no #delays needed).
+- Each put–get pair occurs in lockstep using **delta cycles**.
+
+💡 Even though no time delays exist, multiple delta cycles occur internally.
+All events still happen at simulation time = 0 ns (you can check with $time).
+
+
+-----------------------------------------------------------------------------
+🔹 5️⃣ $timeformat(-9, 0, " ns", 10);
+-----------------------------------------------------------------------------
+Controls display formatting for `$time` in simulation logs:
+  - `-9` → Display in nanoseconds (10⁻⁹)
+  - `0`  → No decimal precision
+  - `" ns"` → Append “ns” as a unit label
+  - `10` → Field width for alignment in log output
+
+Example:
+  [       0 ns] Start simulation
+
+
+-----------------------------------------------------------------------------
+🔹 6️⃣ Bounded vs Unbounded Mailboxes
+-----------------------------------------------------------------------------
+
+• Unbounded Mailbox (`new()`):
+    - Can hold unlimited packets.
+    - If generator does 5 puts and driver only 3 gets:
+        → 2 packets remain queued inside mailbox (not lost).
+
+• Bounded Mailbox (`new(N)`):
+    - Can store at most N packets.
+    - If generator tries to add more (N+1):
+        → `put()` **blocks** until driver performs `get()`.
+
+🧩 Think of mailbox as a “buffered postbox”: Generator drops letters (put), Driver picks them up (get).
+If Driver is slow → queue fills up (bounded).
+If Driver stops → letters stay inside (unbounded).
+
+
+-----------------------------------------------------------------------------
+🔹 7️⃣ Doubts Explained
+-----------------------------------------------------------------------------
+
+❓1: Why must both generator and driver use same repeat count?
+✅ Because:
+   - Generator produces 5 packets → Driver should consume 5.
+   - If mismatch:
+       • Generator > Driver → leftover packets remain in mailbox.
+       • Driver > Generator → driver blocks forever waiting for more data.
+
+❓2: Does control switch to driver right after put()?
+✅ Yes.
+   - As soon as `put()` executes, any process waiting on `get()` is woken.
+   - They alternate execution automatically via delta cycles.
+
+❓3: How long do these processes run?
+✅ No real simulation time elapses (no #delay).
+   - All transactions occur at time = 0 ns.
+   - Simulator uses **delta cycles** internally to synchronize both threads.
+
+❓4: Why driver does not call new() for packet?
+✅ Because `get(q)` receives the **object reference** (handle) from the mailbox.
+   - Generator created it using `new()`.
+   - Mailbox transfers the handle (not a copy).
+   - So driver already has access to the same packet object.
+
+-----------------------------------------------------------------------------
+🔹 8️⃣ Real UVM Use Case
+-----------------------------------------------------------------------------
+- Sequencer → Driver:  uses mailbox/TLM to send randomized transactions.
+- Monitor → Scoreboard:  passes observed DUT data for comparison.
+- Ensures no timing race, thread-safe communication, and modular design.
+
+-----------------------------------------------------------------------------
+🔹 9️⃣ Key Takeaways
+-----------------------------------------------------------------------------
+✅ Mailbox = synchronized, thread-safe FIFO between parallel processes.
+✅ No #delay needed → simulator handles synchronization.
+✅ `put()` and `get()` work in lockstep.
+✅ Unbounded mailbox can hold extra packets; bounded mailbox waits.
+✅ Mailbox transfers *object handles*, not copies.
+
+=============================================================================
+END OF NOTES
+=============================================================================
+*/
