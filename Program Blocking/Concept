@@ -1,0 +1,66 @@
+/*
+===============================================================================
+SystemVerilog Program Blocks
+===============================================================================
+
+Concept
+-------
+A 'program' block is a special testbench container that executes in the
+simulator's **reactive** region, i.e., **after** the DUT (modules) have updated.
+This ordering avoids TB↔DUT races.
+
+Why Use It
+----------
+• Avoid race conditions between TB and DUT without manual #delays.
+• Ensure TB samples DUT outputs after they settle, and schedules inputs for the
+  next cycle.
+
+Event-Queue Position (simplified)
+---------------------------------
+Modules (DUT) update  →  Program (TB) reacts  →  Postponed/monitoring
+(DUT first; program later → deterministic TB sampling/driving)
+
+What It Contains
+----------------
+• Non-synthesizable TB code (initial/final, tasks/functions, checks/prints).
+• Typically used with an interface to access DUT pins.
+
+Common Today?
+-------------
+• Educational/simple benches: Yes, still seen.
+• Professional/UVM testbenches: Rare. UVM phases + interfaces + clocking blocks
+  provide the same race-free behavior with richer structure.
+
+Mini Example
+------------
+program automatic tb(my_if IF);
+  initial begin
+    IF.req <= 0;
+    @(posedge IF.clk);
+    IF.req <= 1;     // driven safely after DUT updates
+    @(posedge IF.clk);
+    $display("q=%0b", IF.q); // stable sample
+    $finish;
+  end
+endprogram
+
+Interview Pointers
+------------------
+• Purpose: "Separate TB from DUT in the scheduler to avoid races."
+• Runs After: "DUT (modules) — program executes in the reactive region."
+• In UVM: "We generally use UVM phases + clocking blocks; program blocks are
+  optional and uncommon in modern flows."
+
+Takeaways
+---------
+• Program blocks solve the **ordering** problem (race avoidance).
+• In modern DV, prefer **interfaces + clocking blocks + UVM phases**.
+
+
+When should you use it?
+If you’re writing tiny, standalone benches, a program is okay.
+If you’re aiming for industry-ready style (UVM), skip program blocks and use:
+Interfaces to bundle pins, Clocking blocks to define safe drive/sample timing,
+UVM for execution order (phases) and structure.
+===============================================================================
+*/
