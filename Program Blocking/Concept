@@ -5,9 +5,9 @@ SystemVerilog Program Blocks
 
 Concept
 -------
-A 'program' block is a special testbench container that executes in the
-simulator's **reactive** region, i.e., **after** the DUT (modules) have updated.
+A 'program' block is a special testbench container that executes in the simulator's **reactive** region, i.e., **after** the DUT (modules) have updated.
 This ordering avoids TB↔DUT races.
+
 
 Why Use It
 ----------
@@ -15,21 +15,25 @@ Why Use It
 • Ensure TB samples DUT outputs after they settle, and schedules inputs for the
   next cycle.
 
+
 Event-Queue Position (simplified)
 ---------------------------------
 Modules (DUT) update  →  Program (TB) reacts  →  Postponed/monitoring
 (DUT first; program later → deterministic TB sampling/driving)
+
 
 What It Contains
 ----------------
 • Non-synthesizable TB code (initial/final, tasks/functions, checks/prints).
 • Typically used with an interface to access DUT pins.
 
+
 Common Today?
 -------------
 • Educational/simple benches: Yes, still seen.
 • Professional/UVM testbenches: Rare. UVM phases + interfaces + clocking blocks
   provide the same race-free behavior with richer structure.
+
 
 Mini Example
 ------------
