@@ -1,0 +1,107 @@
+/*==============================================================================
+🏷️  SystemVerilog Clocking Block
+==============================================================================
+
+🎯 Purpose:
+------------
+Clocking blocks provide *deterministic synchronization* between the Testbench (TB) and the Design Under Test (DUT).
+They eliminate race conditions by defining when TB should drive and sample signals relative to the clock edge.
+
+-------------------------------------------------------------------------------
+🧭 1️⃣ Why We Need Clocking Blocks
+-------------------------------------------------------------------------------
+• In simulation, TB and DUT execute concurrently.
+• If both try to read/write the same signal at the same simulation time, race conditions occur → unpredictable results.
+
+✅ Clocking blocks solve this by introducing timing separation:
+  - DUT acts exactly at the clock edge.
+  - TB acts slightly later, according to defined skews (#delays).
+
+-------------------------------------------------------------------------------
+🧩 2️⃣ Syntax Overview
+-------------------------------------------------------------------------------
+clocking cb @(posedge clk);
+  default input #1ns output #2ns; // input sample delay, output drive delay
+  input  q;    // TB reads DUT output (1 ns after edge)
+  output d;    // TB drives DUT input (2 ns after edge)
+endclocking
+
+• `@(posedge clk)` → defines timing domain (posedge of clk).
+• `input #1ns`  → TB samples outputs 1 ns after clock edge.
+• `output #2ns` → TB drives inputs 2 ns after clock edge.
+
+-------------------------------------------------------------------------------
+🕓 3️⃣ Timing Reference (Non-Additive Skews)
+-------------------------------------------------------------------------------
+All skews are measured *from the same clock edge (time = 0)*.
+They are **not** cumulative.
+
+  Time (ns): | 0      1      2      3 ... 10
+  Clock:     | ↑            ↓            ↑
+              posedge clk          next posedge
+  --------------------------------------------------------------
+  Event:
+   0 ns  → DUT samples input d
+   +1 ns → TB samples output q  (input skew)
+   +2 ns → TB drives new d      (output skew)
+   10 ns → DUT sees new d at next posedge
+  --------------------------------------------------------------
+
+🧠 Common doubt:
+ “If TB samples at +1 ns and drives at +2 ns, shouldn’t that be 3 ns?”
+ → No. Both 1 ns and 2 ns are relative to the same reference point
+   (the posedge clk). They are *independent* offsets.
+
+-------------------------------------------------------------------------------
+🧩 4️⃣ Testbench Usage Example
+-------------------------------------------------------------------------------
+initial begin
+  cb.d <= 0;          // Drives after +2 ns (per output skew)
+  @(cb);              // Wait for next clocking event (posedge clk)
+  cb.d <= 1;          // Again drives after +2 ns
+  @(cb);              // Waits another clock edge
+  $display("At %0t: q=%0b", $time, cb.q); // Reads q at +1 ns (input skew)
+  #5 $finish;
+end
+
+🧠 Line-by-line meaning:
+ • `cb.d <= 0;` schedules drive 2 ns after clock edge.
+ • `@(cb);` waits for next clock event safely (like @(posedge clk)).
+ • `cb.q` reads q 1 ns after edge — already stable.
+ • TB and DUT never access same signal simultaneously.
+
+-------------------------------------------------------------------------------
+⚙️ 5️⃣ Complete Flow per Clock Cycle
+-------------------------------------------------------------------------------
+| Time | Actor | Action |
+|------|--------|----------------------------------------------|
+| 0 ns | DUT | Samples d (old value) |
+| +1 ns | TB  | Reads q safely (input #1ns) |
+| +2 ns | TB  | Drives new d (output #2ns) |
+|10 ns | DUT | Samples new d on next posedge |
+
+✅ Result: No race conditions — deterministic simulation.
+
+-------------------------------------------------------------------------------
+💎 6️⃣ Real DV / UVM Usage
+-------------------------------------------------------------------------------
+• Every UVM virtual interface includes a clocking block.
+• All driver and monitor transactions go through it for timing accuracy.
+• Example in interface:
+    interface axi_if(input logic clk);
+      clocking cb @(posedge clk);
+        default input #1ns output #2ns;
+        input ready; output valid, data;
+      endclocking
+    endinterface
+
+-------------------------------------------------------------------------------
+🧠 7️⃣ Key Takeaways
+-------------------------------------------------------------------------------
+• Clocking block = timing “contract” between TB and DUT.
+• Avoids races automatically — no manual #delays needed.
+• Skews are relative to clock edge (not additive).
+• Provides clear, maintainable, protocol-accurate testbenches.
+• Essential in UVM and professional verification environments.
+
+==============================================================================*/
