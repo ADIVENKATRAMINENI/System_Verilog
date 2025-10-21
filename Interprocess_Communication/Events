@@ -1,0 +1,53 @@
+/*=============================================================================
+🧠 SYSTEMVERILOG — EVENTS (PROCESS SYNCHRONIZATION)
+=============================================================================
+
+📘 Concept:
+- Events are used for **synchronization between processes**.
+- No data is transferred — only a signal or trigger.
+
+-----------------------------------------------------------------------------
+🔹 Declaration:
+   event start_e;
+
+-----------------------------------------------------------------------------
+🔹 Operations:
+   -> start_e;     // trigger (raise event)
+   @(start_e);     // wait for event to occur
+   wait_order(e1, e2); // wait for sequence of events
+
+-----------------------------------------------------------------------------
+🔹 Example Summary:
+   • Driver waits for event (@start_e)
+   • Generator triggers event after 20ns (-> start_e)
+   • Driver resumes and starts work
+
+-----------------------------------------------------------------------------
+🔹 Example Output:
+   Driver waiting for generator...
+   Generator ready, triggering event!
+   Driver started at 20
+
+-----------------------------------------------------------------------------
+🔹 Important Notes:
+✅ If event triggered before process waits, signal is lost.
+✅ Multiple waiters → all wake up when event triggered.
+✅ Does not store history (stateless synchronization).
+
+-----------------------------------------------------------------------------
+🔹 Real DV Applications:
+✅ Phase coordination (reset_done, test_start)
+✅ Start/stop control between parallel threads
+✅ Inter-component signaling in testbench
+✅ Basic handshake modeling between Generator/Driver
+
+-----------------------------------------------------------------------------
+🔹 Comparison Summary:
+   Event      → Synchronization signal
+   Mailbox    → Data communication
+   Semaphore  → Resource control
+
+💡 Events are the foundation of process synchronization in testbenches.
+=============================================================================
+END OF NOTES
+=============================================================================*/
