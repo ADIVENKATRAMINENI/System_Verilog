@@ -1,0 +1,53 @@
+/*=============================================================================
+🧠 SYSTEMVERILOG — SEMAPHORE CONCEPT 
+=============================================================================
+
+📘 Purpose:
+- A semaphore is a synchronization mechanism that controls how many processes can access a shared resource at the same time. (or) Semaphore controls how many processes can access a shared resource at once.
+- Think of it like a "limited number of room keys" system.
+- You can think of it like “tokens” or “keys” — a process must take a key before using a resource and return it afterward.
+
+-----------------------------------------------------------------------------
+🔹 Declaration:
+   semaphore sema = new(2);
+   // '2' means there are 2 keys → 2 processes allowed simultaneously.
+
+-----------------------------------------------------------------------------
+🔹 Methods:
+   get(n)      → Take 'n' keys (waits if unavailable)
+   put(n)      → Return 'n' keys (releases resource)
+   try_get(n)  → Non-blocking get (returns immediately with 0 if failed)
+
+-----------------------------------------------------------------------------
+🔹 Example:
+- Three tasks (A, B, C) compete for 2 available keys.
+- A and B enter immediately.
+- C waits until one leaves (returns a key).
+
+-----------------------------------------------------------------------------
+🔹 Simulation Output:
+   A enters at 0
+   B enters at 0
+   A leaves at 10
+   C enters at 10
+   B leaves at 10
+   C leaves at 20
+
+-----------------------------------------------------------------------------
+🔹 Real-World Use:
+✅ Prevent bus contention (multiple drivers)
+✅ Manage access to shared scoreboards or logs
+✅ Serialize interface access (e.g., AHB/AXI bus)
+✅ Ensure only limited processes operate in parallel
+
+-----------------------------------------------------------------------------
+🔹 Difference from Mailbox:
+   - Mailbox transfers data between threads.
+   - Semaphore restricts how many threads can run concurrently.
+
+💡 Semaphores = synchronization tool for *resource access control*.
+💡 Mailboxes = synchronization tool for *data communication*.
+
+=============================================================================
+END OF NOTES
+=============================================================================*/
