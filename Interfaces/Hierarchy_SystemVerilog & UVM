@@ -1,0 +1,214 @@
+/*
+===============================================================================
+📘 SYSTEMVERILOG HIERARCHY — COMPLETE NOTES
+===============================================================================
+Author: [Your Name]
+Purpose: Beginner-to-Professional notes on SystemVerilog Hierarchy
+Target Role: Design Verification Engineer
+===============================================================================
+
+🧩 1️⃣ OVERVIEW — WHAT IS HIERARCHY?
+-----------------------------------
+Hierarchy = The *tree structure* of how SystemVerilog design and testbench components are organized and connected.
+
+Every `module`, `interface`, and `program` you instantiate adds a new level to the simulation hierarchy.
+
+Think of it like a *family tree* of your entire design.
+
+Example hierarchy tree:
+    tb_top
+     ├── dut
+     │    ├── internal_block1
+     │    └── internal_block2
+     ├── if_inst
+     └── driver, monitor, scoreboard  (class-based components)
+
+💡 In DV context:
+- DUT → actual hardware design
+- Interface → signal bundle connecting DUT & TB
+- TB / Class Hierarchy → environment that drives, monitors, and checks DUT
+
+===============================================================================
+🧠 2️⃣ WHY HIERARCHY MATTERS
+----------------------------
+| Area | Importance |
+|-------|-------------|
+| **Connectivity** | Defines how DUT, interfaces, and TB communicate |
+| **Debugging** | Lets you reference any signal using its full path (e.g., tb.dut.data) |
+| **Reuse** | Enables modular, maintainable TB structures |
+| **UVM Integration** | Mirrors static hardware hierarchy with dynamic class hierarchy |
+
+💬 In simulation, you can inspect hierarchy in the QuestaSim “Objects” or “Hierarchy” pane to trace all connections visually.
+
+===============================================================================
+🔹 3️⃣ SIMPLE EXAMPLE — DESIGN & TESTBENCH
+------------------------------------------
+module adder(input logic [3:0] a, b, output logic [4:0] sum);
+  assign sum = a + b;
+endmodule
+
+module tb;
+  logic [3:0] a, b;
+  logic [4:0] sum;
+  adder dut(.a(a), .b(b), .sum(sum));
+
+  initial begin
+    a = 3; b = 5;
+    #10 $display("TB: a=%0d b=%0d sum=%0d", a, b, sum);
+  end
+endmodule
+
+Hierarchy Tree:
+    tb
+     └── dut
+
+Signals can be accessed as:
+    tb.a, tb.dut.sum, tb.dut.a
+
+===============================================================================
+🔸 4️⃣ ADDING INTERFACES TO THE HIERARCHY
+-----------------------------------------
+interface adder_if;
+  logic [3:0] a, b;
+  logic [4:0] sum;
+endinterface
+
+module adder(adder_if aif);
+  assign aif.sum = aif.a + aif.b;
+endmodule
+
+module tb;
+  adder_if aif();
+  adder dut(aif);
+
+  initial begin
+    aif.a = 3; aif.b = 4;
+    #5 $display("Sum = %0d", aif.sum);
+  end
+endmodule
+
+Hierarchy Tree:
+    tb
+     ├── aif (interface)
+     │     ├── a
+     │     ├── b
+     │     └── sum
+     └── dut
+
+➡️ Interfaces appear as sub-branches in the hierarchy.
+
+===============================================================================
+🔹 5️⃣ HIERARCHICAL REFERENCES (DOT NOTATION)
+---------------------------------------------
+Any signal or variable can be accessed using its *full hierarchical path*:
+
+    $display("%0d", tb.aif.a);
+    $display("%0d", tb.dut.aif.sum);
+
+✅ Valid for modules/interfaces/programs  
+❌ Not valid for classes (they’re software objects, not hardware hierarchy)
+
+===============================================================================
+🔹 6️⃣ CLASS VS MODULE HIERARCHY
+--------------------------------
+| Type | Nature | Access Method | Example |
+|-------|--------|---------------|----------|
+| **Modules / Interfaces** | Static (hardware) | Hierarchical name | `tb.dut.signal` |
+| **Classes** | Dynamic (software) | Object handle | `driver_obj.display()` |
+
+Design Verification Engineers must understand both hierarchies, since testbench classes communicate with hardware through *virtual interfaces*.
+
+===============================================================================
+🔸 7️⃣ HIERARCHY + INTERFACE + CLASS CONNECTION
+-----------------------------------------------
+Typical DV architecture:
+    tb_top
+     ├── dut_if (interface)
+     │    ├── modport drv_mp
+     │    ├── modport mon_mp
+     │    └── clocking block
+     ├── dut
+     └── env (class)
+          ├── agent
+          │     ├── driver (uses virtual interface)
+          │     └── monitor (uses virtual interface)
+          └── scoreboard
+
+Class world (dynamic) connects to hardware world (static) using a **virtual interface handle**, e.g.:
+    drv = new(tb_top.dut_if);
+
+This creates the bridge between both hierarchies.
+
+===============================================================================
+🔹 8️⃣ WHY HIERARCHY IS ESSENTIAL FOR DV ENGINEERS
+--------------------------------------------------
+✅ **Signal tracing** — identify where a value originates  
+✅ **Forcing signals** — apply overrides during debug (`force tb.dut.signal = 1'b1;`)  
+✅ **Waveform viewing** — navigate simulation hierarchy in tools  
+✅ **TB structure understanding** — modular connections (env → agent → driver)  
+✅ **UVM organization** — runtime class hierarchy mirrors hardware hierarchy
+
+===============================================================================
+🧩 9️⃣ DV EXAMPLE
+----------------------
+module tb_top;
+  logic clk;
+  dut_if if_inst(clk);
+  dut     dut_inst(if_inst);
+  env     env_inst;   // class-based TB environment
+
+  initial begin
+    env_inst = new();
+    env_inst.connect(if_inst);  // Connect virtual interface
+    env_inst.run();             // Start simulation
+  end
+endmodule
+
+Hierarchy View in Simulator:
+    tb_top
+     ├── clk
+     ├── if_inst
+     ├── dut_inst
+     └── env_inst (class, dynamic)
+
+===============================================================================
+🧠 COMMON DOUBTS
+--------------------------------
+❓ *Q: Can I access class variables hierarchically like signals?*  
+➡️ No, classes are not part of static simulation hierarchy.  You use object handles instead.
+
+❓ *Q: Why can I see modules and interfaces but not classes in the waveform?*  
+➡️ Because classes live in the software memory, not in the hardware simulation tree.
+
+❓ *Q: Why do we connect virtual interfaces using hierarchy (tb_top.if_inst)?*  
+➡️ Because that’s the real, physical instance name in the simulation tree.
+
+===============================================================================
+📗 INTERVIEW NOTES
+-----------------------
+1. What is SystemVerilog hierarchy?
+   → Hierarchical structure of modules, interfaces, and programs that define how design and testbench elements are organized.
+
+Q2. Why is hierarchy important in verification?
+   → It enables connectivity, debugging, and modularity of the testbench and defines signal accessibility.
+
+Q3. How is class hierarchy different from module hierarchy?
+   → Class hierarchy is dynamic and uses object handles; module hierarchy is static and hardware-based.
+
+Q4. How do you access a DUT signal from the testbench?
+   → Using hierarchical reference like `tb_top.dut.signal`.
+
+Q5. How do virtual interfaces relate to hierarchy?
+   → Virtual interfaces use the *hierarchical instance path* to connect the class world with the design hierarchy.
+
+===============================================================================
+✅ KEY TAKEAWAYS
+---------------------
+• Hierarchy defines “who owns whom” in design & testbench.  
+• Modules/interfaces form **static hierarchy**.  
+• Classes/UVM components form **dynamic hierarchy**.  
+• Virtual interfaces bridge both worlds.  
+• Understanding hierarchy is critical for debugging and reusability.  
+
+===============================================================================
+*/
