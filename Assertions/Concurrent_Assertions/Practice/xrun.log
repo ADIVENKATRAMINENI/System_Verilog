@@ -1,0 +1,33 @@
+xrun: 23.09-s001: (c) Copyright 1995-2023 Cadence Design Systems, Inc.
+TOOL:	xrun	23.09-s001: Started on Oct 23, 2025 at 18:36:26 EDT
+xrun
+	-Q
+	-unbuffered
+	-timescale 1ns/1ns
+	-sysv
+	-access +rw
+	design.sv
+	testbench.sv
+	Top level design units:
+		tb
+Loading snapshot worklib.tb:sv .................... Done
+xcelium> source /xcelium23.09/tools/xcelium/files/xmsimrc
+xcelium> run
+xmsim: *E,ASRTST (./testbench.sv,32): (time 55 NS) Assertion tb.p_req_ack_within_2 has failed
+❌ FAIL: ACK not received within 2 cycles after REQ at 55
+xmsim: *E,ASRTST (./testbench.sv,32): (time 85 NS) Assertion tb.p_req_ack_within_2 has failed
+❌ FAIL: ACK not received within 2 cycles after REQ at 85
+xmsim: *E,ASRTST (./testbench.sv,21): (time 95 NS) Assertion tb.p_req_ack_within_3 has failed
+❌ FAIL: ACK not received within 3 cycles after REQ at 95
+xmsim: *E,ASRTST (./testbench.sv,32): (time 95 NS) Assertion tb.p_req_ack_within_2 has failed
+❌ FAIL: ACK not received within 2 cycles after REQ at 95
+xmsim: *E,ASRTST (./testbench.sv,21): (time 105 NS) Assertion tb.p_req_ack_within_3 has failed
+❌ FAIL: ACK not received within 3 cycles after REQ at 105
+xmsim: *E,ASRTST (./testbench.sv,32): (time 115 NS) Assertion tb.p_req_ack_within_2 has failed
+❌ FAIL: ACK not received within 2 cycles after REQ at 115
+xmsim: *E,ASRTST (./testbench.sv,32): (time 145 NS) Assertion tb.p_req_ack_within_2 has failed
+❌ FAIL: ACK not received within 2 cycles after REQ at 145
+Simulation complete via $finish(1) at time 155 NS + 0
+./testbench.sv:51     #20 $finish;
+xcelium> exit
+TOOL:	xrun	23.09-s001: Exiting on Oct 23, 2025 at 18:36:27 EDT  (total: 00:00:01)
