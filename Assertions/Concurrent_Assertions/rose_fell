@@ -1,0 +1,55 @@
+/*===============================================================================
+📘 SYSTEMVERILOG ASSERTIONS — $rose() and $fell()
+===============================================================================
+
+🔹 1. WHY WE USE $rose() AND $fell()
+When a signal (like `req`) stays high for many clock cycles, a normal assertion like:
+req |-> ##[1:3] ack;
+starts multiple threads every cycle while req = 1.
+This can create false failures even if the design is correct.
+
+✅ To fix this, we use event-based triggers:
+$rose(req) → checks when req rises (0 → 1)
+$fell(req) → checks when req falls (1 → 0)
+These start only once per event, not every clock cycle.
+
+
+🔹 2. SIMPLE EXAMPLE
+property p_req_ack;
+  @(posedge clk) disable iff (!reset_n)
+  $rose(req) |-> ##[1:3] ack;
+endproperty
+
+assert property (p_req_ack)
+  else $error("ACK not received within 3 cycles after REQ");
+
+✅ Meaning:
+When req rises, ack must go high within 1 to 3 clock cycles.
+Assertion ignores reset using disable iff (!reset_n).
+
+
+🔹 3. QUICK NOTES
+Function	                       Meaning
+$rose(signal)	          Triggers once when signal goes 0→1
+$fell(signal)	          Triggers once when signal goes 1→0
+`	->`
+##[m:n]	Delay of m to n cycles
+disable iff(cond)	Turns off assertion when condition is true
+
+
+🔹 4. EXAMPLE TIMING
+clk: ↑   ↑   ↑   ↑   ↑
+req: 0   1   1   1   0
+ack: 0   0   0   1   0
+
+Without $rose(req) → 3 checks start → false fails ❌
+With $rose(req) → Only one check starts → correct ✅
+
+
+🔹 5. REAL USE
+Used by Design Verification Engineers to:
+Verify handshake signals (req–ack, valid–ready)
+Ensure correct signal timing across cycles
+Avoid false assertion failures
+
+===============================================================================
