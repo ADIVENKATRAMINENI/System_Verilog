@@ -1,1 +1,133 @@
-sd
+/*===============================================================================
+📘 SYSTEMVERILOG ASSERTIONS — CONCURRENT ASSERTIONS
+===============================================================================
+
+🔹 1. WHAT ARE CONCURRENT ASSERTIONS?
+Concurrent assertions are statements that check **design behavior over time** (i.e., across multiple clock cycles). They run **in parallel** with the design, 
+hence the name "concurrent".
+
+These are used to ensure that **time-dependent rules** (like handshakes, timing relationships, or sequences of events) occur correctly. 
+For example: “If `req` goes high, `ack` must go high within 3 clock cycles.”
+
+✔ Used for:  
+  - Protocol checks (REQ/ACK, VALID/READY)
+  - Timing checks (delays, sequencing)
+  - Multi-cycle verification rules
+  - Temporal relationships (A before B, etc.)
+
+================================================================================
+🔹 2. WHY DV ENGINEERS NEED CONCURRENT ASSERTIONS
+================================================================================
+A Design Verification (DV) Engineer not only checks if outputs are *functionally* correct — they must also ensure **timing correctness** and **protocol integrity**.
+
+Concurrent assertions:
+  ✅ Run automatically on every clock edge  
+  ✅ Detect handshake / timing violations  
+  ✅ Work in both **simulation** and **formal** tools  
+  ✅ Greatly reduce manual `if–else` debugging  
+  ✅ Are essential in every **UVM testbench** via interfaces or monitors  
+
+================================================================================
+🔹 3. BASIC SYNTAX
+================================================================================
+📘 Syntax:
+assert property (@(posedge clk) <sequence_or_rule>)
+  else <fail_statement>;
+✔ Each concurrent assertion is clock-based.
+✔ The expression is sampled on the posedge clk (or other edge).
+✔ It monitors the rule every cycle until the simulation ends.
+
+================================================================================
+🔹 4. PROPERTY DECLARATION
+To express a time-based rule, we use a property block.
+
+📘 Syntax:
+
+property <property_name>;
+  @(posedge clk) disable iff (!reset_n)
+  <sequence>;
+endproperty
+
+assert property (<property_name>)
+  else $error("Rule violated!");
+
+🧩 Explanation:
+property ... endproperty → defines a reusable rule
+@(posedge clk) → evaluates only on the rising edge
+disable iff (!reset_n) → temporarily disables checking while reset is active
+assert property() → enforces the rule and reports failures
+
+
+💬 Common Beginner Doubt:
+What does disable iff (!reset_n) mean?
+👉 It means: “Disable this assertion if condition is true.”
+So when reset_n = 0, the rule is not checked (to avoid false failures during reset).
+When reset is de-asserted (reset_n = 1), the assertion becomes active again.
+
+================================================================================
+🔹 5. KEY OPERATORS (used 95% of the time)
+Operator	                  Say it like...	              Meaning
+`	                               ->`	               “if… then (overlapped)”
+`	                               =>`	               “if… then next (non-overlapped)”
+##N	                        “after N cycles”	        RHS must hold N cycles later
+##[m:n] 	                “within m to n cycles”	    RHS must occur within this range
+disable iff (cond)	          “turn off if”	          Temporarily disables assertion
+
+
+💬 Common Beginner Doubt:
+
+Are |-> and |=> the same?
+❌ No. They differ by 1 cycle:
+|-> → RHS may start in the same cycle (overlapped).
+|=> → RHS starts in the next cycle (non-overlapped).
+
+
+📊 Visualization:
+| Cycle | req | ack | |-> | |=> |
+|-------|-----|-----|-------|-------|
+| t0 | 1 | 1 | ✅ Pass | ❌ Fail |
+| t1 | 1 | 0 → 1 next | ✅ Pass | ✅ Pass |
+| t2 | 1 | 0 (never) | ❌ Fail | ❌ Fail |
+
+================================================================================
+🔹 6. SIMPLE EXAMPLES
+✔ Inline property
+assert property (@(posedge clk) (req1 || req2));
+Checks that at least one of req1 or req2 is 1 at every posedge clk.
+
+
+✔ Named property
+property p_req_ack;
+  @(posedge clk) disable iff (!reset_n)
+  req |-> ##[1:3] ack;
+endproperty
+
+assert property (p_req_ack)
+  else $error("ACK not seen within 3 cycles of REQ");
+If req goes high, ack must follow within 1–3 cycles.
+
+Disabled when reset_n = 0.
+
+================================================================================
+🔹 7. WHERE CONCURRENT ASSERTIONS ARE WRITTEN
+Inside modules, interfaces, or packages
+Often placed inside clocking blocks (in UVM interfaces)
+Can be reused in multiple testbenches
+Checked during simulation and formal verification
+
+================================================================================
+🔹 8. PRACTICAL DV APPLICATIONS
+DV Engineers use concurrent assertions for:
+
+Handshake protocols: REQ/ACK, VALID/READY timing
+Reset sequencing: outputs must remain 0 until reset released
+Bus verification: AXI, AHB, APB timing windows
+Coverage checks: to confirm protocol scenarios were exercised
+
+================================================================================
+
+🔹9. SUMMARY STATEMENT
+Concurrent assertions are the backbone of Assertion-Based Verification (ABV) in real-world environments.
+They verify timing relationships, handshakes, and sequencing over time, and help Design Verification Engineers catch protocol bugs early with precision.
+
+===============================================================================*/
