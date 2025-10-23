@@ -1,0 +1,25 @@
+xrun: 23.09-s001: (c) Copyright 1995-2023 Cadence Design Systems, Inc.
+TOOL:	xrun	23.09-s001: Started on Oct 23, 2025 at 14:59:49 EDT
+xrun
+	-Q
+	-unbuffered
+	-timescale 1ns/1ns
+	-sysv
+	-access +rw
+	design.sv
+	testbench.sv
+	Top level design units:
+		tb
+Loading snapshot worklib.tb:sv .................... Done
+xcelium> source /xcelium23.09/tools/xcelium/files/xmsimrc
+xcelium> run
+xmsim: *E,ASRTST (./design.sv,5): (time 5 NS) Assertion tb.dut.__assert_1 has failed
+Assertion failed: Both reqA and reqB are low at time 5
+xmsim: *E,ASRTST (./design.sv,5): (time 15 NS) Assertion tb.dut.__assert_1 has failed
+Assertion failed: Both reqA and reqB are low at time 15
+xmsim: *W,ASRTST (./design.sv,7): (time 25 NS) Assertion tb.dut.__assert_2 has failed
+Warning: in != 0 at time 25
+Simulation complete via $finish(1) at time 55 NS + 0
+./testbench.sv:31     #10 $finish;
+xcelium> exit
+TOOL:	xrun	23.09-s001: Exiting on Oct 23, 2025 at 14:59:50 EDT  (total: 00:00:01)
