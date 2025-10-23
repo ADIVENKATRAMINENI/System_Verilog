@@ -1,0 +1,117 @@
+/*===============================================================================
+📘 SYSTEMVERILOG ASSERTIONS — INTRODUCTION & IMMEDIATE ASSERTIONS
+===============================================================================
+
+🔹 1. WHAT ARE ASSERTIONS?
+Assertions are statements used to **check that the design behaves as expected** 
+based on given rules or specifications. They automatically verify design behavior 
+and report violations during simulation.
+
+Assertions form the foundation of **Assertion-Based Verification (ABV)**, which 
+helps detect functional bugs early and reduces manual checking.
+
+✅ Advantages:
+  - Detect design errors early and automatically.
+  - Improve debugging time by pinpointing the failing condition and time.
+  - Can be reused across environments (simulation + formal).
+  - Provide **functional coverage** (which parts of the spec were exercised).
+  - Can be **enabled/disabled** or **parameterized** as needed.
+
+================================================================================
+🔹 2. TYPES OF ASSERTIONS
+================================================================================
+1️⃣ **Immediate Assertions** — single-time, procedural checks  
+2️⃣ **Concurrent Assertions** — multi-cycle, time-based checks
+
+================================================================================
+🔹 3. IMMEDIATE ASSERTIONS
+================================================================================
+An Immediate Assertion checks a condition **at the current simulation time**.
+They execute just like an `if–else` statement but provide automatic reporting.
+
+📘 Syntax:
+  <label>: assert (expression)
+              <pass_statement>
+            else
+              <fail_statement>;
+
+If the `expression` evaluates:
+  - TRUE (1): executes pass_statement (optional)
+  - FALSE (0), X, or Z: executes fail_statement (failure)
+
+Both pass and fail statements are optional.
+
+📘 Example:
+  assert (reqA || reqB)
+    else $error("Both reqA and reqB cannot be low!");
+
+  assert (in == 0)
+    else $warning("Input 'in' must remain 0!");
+
+================================================================================
+🔹 4. SEVERITY LEVELS
+================================================================================
+You can define how severe an assertion failure is:
+
+  $info     → Informational message (no severity)
+  $warning  → Simulation warning (does not stop sim)
+  $error    → Simulation error (reported but sim continues)
+  $fatal    → Stops simulation immediately
+
+================================================================================
+🔹 5. KEY CONCEPTS
+================================================================================
+- **When they execute:** inside procedural blocks (`always`, `initial`, `task`).
+- **Where to use:** protocol checks, illegal condition detection, data validity.
+- **Execution:** in the *active region* of simulation.
+- **Design example:**
+    module design_ex(input clk, reqA, reqB, in);
+      always @(posedge clk) begin
+        assert (reqA || reqB)
+          else $error("Both reqA and reqB low at time %0t", $time);
+        assert (in == 0)
+          else $warning("Input 'in' high at time %0t", $time);
+      end
+    endmodule
+
+================================================================================
+🔹 6. PRACTICE & EXPECTED OUTPUT
+================================================================================
+When both `reqA` and `reqB` are 0 → $error  
+When `in` = 1 → $warning  
+Otherwise → Assertion passes silently.
+
+Simulation Log (Typical):
+  ** Error: Assertion failed: Both reqA and reqB are low at time 10
+  ** Warning: in != 0 at time 25
+
+================================================================================
+🔹 7. WHY DV ENGINEERS USE ASSERTIONS
+================================================================================
+✔️ Automate checking — no need for manual `if–else` or scoreboard for simple rules.  
+✔️ Faster debug — simulator points directly to the violation line.  
+✔️ Can be reused in **formal verification tools** to prove correctness.  
+✔️ Common in real SoC/ASIC environments for:
+     - Handshake checks (`req`/`ack`)
+     - Valid data timing (`valid`/`ready`)
+     - Reset conditions
+     - FIFO overflow/underflow checks
+
+================================================================================
+🔹 8. DIFFERENCE BETWEEN IMMEDIATE & CONCURRENT ASSERTIONS
+================================================================================
+| Feature            | Immediate Assertion       | Concurrent Assertion         |
+|--------------------|---------------------------|-------------------------------|
+| Time of Check      | Same simulation tick       | Over multiple cycles          |
+| Written Inside     | Procedural blocks          | Modules / clocking blocks     |
+| Triggering Event   | Always executes            | Triggered by clock edge       |
+| Example Use Case   | Range or signal validity   | Handshake / protocol timing   |
+
+================================================================================
+🔹 9. SUMMARY
+================================================================================
+Immediate assertions are like real-time `if–else` checks used for signal validity 
+and single-cycle rules. They help DV engineers quickly detect violations and 
+improve verification coverage with minimal code.
+
+===============================================================================*/
