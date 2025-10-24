@@ -1,0 +1,67 @@
+/*===============================================================================
+📘 SYSTEMVERILOG ASSERTIONS — SEQUENCES
+===============================================================================
+
+🔹 1. WHAT IS A SEQUENCE?
+A **sequence** in SystemVerilog represents a **series of events or signal conditions** that occur over **one or more clock cycles**.  
+It allows you to describe timing-based relationships between signals.
+
+✅ Example idea:
+“Whenever req happens, ack should occur 3 cycles later.”
+
+-------------------------------------------------------------------------------
+🔹 2. SYNTAX
+-------------------------------------------------------------------------------
+sequence <sequence_name>;
+   <boolean expressions over time>;
+endsequence
+
+📘 Example:
+sequence seq_ex;
+   req ##3 ack;   // ack must happen 3 cycles after req
+endsequence
+
+-------------------------------------------------------------------------------
+🔹 3. TYPES
+-------------------------------------------------------------------------------
+1️⃣ **Linear Sequence** – Expressions arranged in order of time.
+   ➤ Example: `req ##5 ack` → ack must occur exactly 5 cycles after req.
+
+2️⃣ **Logical Sequence** – Boolean relationship within same cycle.
+   ➤ Example: `req && ack` → both must be true in same clock.
+
+3️⃣ **Parameterized Sequence** – Takes formal arguments for flexibility.
+   ➤ Example:
+      sequence seq_en(en);
+        (req1 || req2) && en;
+      endsequence
+
+-------------------------------------------------------------------------------
+🔹 4. MULTIPLE SEQUENCES
+-------------------------------------------------------------------------------
+You can build complex properties by combining multiple sequences.
+
+📘 Example:
+sequence seqA; req ##5 ack; endsequence
+sequence seqB; req && ack; endsequence
+
+property prop;
+   @(posedge clk) seqA |-> seqB;
+endproperty
+
+assert property(prop);
+
+-------------------------------------------------------------------------------
+🔹 5. EMPTY SEQUENCE
+-------------------------------------------------------------------------------
+An empty sequence matches no clock cycles:
+  `req[*0]` → req repeats 0 times (i.e., no event required).
+
+-------------------------------------------------------------------------------
+🔹 6. USE IN VERIFICATION
+-------------------------------------------------------------------------------
+✔ Used to capture **protocol timing** (handshake, delays, transactions).  
+✔ Makes assertions readable and reusable.  
+✔ Simplifies checking complex multi-cycle rules.
+
+===============================================================================*/
