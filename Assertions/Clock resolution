@@ -1,0 +1,57 @@
+/*===============================================================================
+📘 SYSTEMVERILOG ASSERTIONS — CLOCK RESOLUTION
+===============================================================================
+
+🔹 1. WHY CLOCK IS IMPORTANT
+Concurrent assertions depend on **clock edges** to sample and evaluate signals.
+Every time-based check must know **which clock** it runs on.
+
+If the clock isn’t clear → assertion becomes illegal.
+
+-------------------------------------------------------------------------------
+🔹 2. CLOCK RESOLUTION PRIORITY
+-------------------------------------------------------------------------------
+SystemVerilog chooses clock source in this order:
+
+| Priority | Source | Description |
+|-----------|---------|-------------|
+| 1️⃣ | Explicit clock | Defined in property (`@(posedge clk)`) |
+| 2️⃣ | From sequence | Defined in sequence itself |
+| 3️⃣ | From clocking block | Derived from declared clocking block |
+| 4️⃣ | From procedural context | Taken from always block trigger |
+
+-------------------------------------------------------------------------------
+🔹 3. EXAMPLES
+-------------------------------------------------------------------------------
+✅ **Property with explicit clock**
+property prop;
+  @(posedge clk) req ##3 ack;
+endproperty
+
+
+✅ Sequence with clock
+sequence seq;
+  @(posedge clk) req ##3 ack;
+endsequence
+
+
+✅ Clock inferred from clocking block
+clocking CB @(posedge clk);
+  property prop; req ##3 ack; endproperty
+endclocking
+assert property (CB.prop);
+
+
+✅ Clock inferred from procedural block
+property prop;
+  req ##3 ack;
+endproperty
+always @(posedge clk)
+  assert property (prop);
+-------------------------------------------------------------------------------
+🔹 4. TAKEAWAYS
+✔ Always specify clock explicitly to avoid ambiguity.
+✔ Assertions inside interfaces or UVM components often use clocking blocks.
+✔ Multi-clock SoC environments require careful domain selection.
+
+===============================================================================*/
