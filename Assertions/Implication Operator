@@ -1,0 +1,62 @@
+/*===============================================================================
+📘 SYSTEMVERILOG ASSERTIONS — IMPLICATION OPERATOR
+===============================================================================
+
+🔹 1. WHAT IS IT?
+The **implication operator** expresses a conditional timing rule: “If this happens, then that must follow.”
+
+Syntax:
+   sequence_exp |-> property_exp    // Overlapped
+   sequence_exp |=> property_exp    // Non-overlapped
+
+- LHS = Antecedent (“if” part)
+- RHS = Consequent (“then” part)
+
+-------------------------------------------------------------------------------
+🔹 2. TYPES OF IMPLICATION
+-------------------------------------------------------------------------------
+
+| Type | Symbol | Starts Evaluation | Description |
+|------|---------|-------------------|--------------|
+| **Overlapped** | `|->` | Same clock cycle | RHS begins immediately when LHS is true |
+| **Non-overlapped** | `|=>` | Next clock cycle | RHS begins from the following clock edge |
+
+-------------------------------------------------------------------------------
+🔹 3. EXAMPLES
+-------------------------------------------------------------------------------
+
+✅ Overlapped (`|->`)
+property p_overlap;
+  @(posedge clk) valid |-> (a ##3 b);
+endproperty
+→ When valid is 1, check starts immediately; after 3 cycles b must be 1.
+
+
+✅ Non-overlapped (|=>)
+property p_non_overlap;
+  @(posedge clk) valid |=> (a ##3 b);
+endproperty
+→ When valid is 1, check starts on next clock edge.
+
+-------------------------------------------------------------------------------
+🔹 4. REAL USE CASE
+-------------------------------------------------------------------------------
+property p_req_ack;
+  @(posedge clk)
+    $rose(req) |=> ##[1:3] ack;
+endproperty
+
+assert property(p_req_ack)
+  else $error("ACK not received within 3 cycles after REQ");
+✔ $rose(req) ensures the property triggers only once per request.
+✔ ##[1:3] defines a timing window for ack to arrive.
+
+-------------------------------------------------------------------------------
+🔹 5. SUMMARY
+-------------------------------------------------------------------------------
+Implication links cause → effect conditions.
+|-> → check starts same cycle (immediate response).
+|=> → check starts next cycle (delayed response).
+Used for: handshake, valid/ready, protocol timing, etc.
+
+===============================================================================*/
