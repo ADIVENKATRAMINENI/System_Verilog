@@ -1,0 +1,234 @@
+📘 Introduction
+
+In verification, *coverage* measures how much of the **design and functionality** has been tested.   It answers:  
+> "Have we tested enough to sign off the design?"
+
+There are two types:
+- **Code Coverage:** How much RTL was executed.
+- **Functional Coverage:** How much functionality was verified.
+
+---
+🔹 1️⃣ Code Coverage
+Code coverage is automatically collected by simulators.
+
+| Type | Description |
+|------|--------------|
+| **Line/Block** | How many lines executed |
+| **Expression** | All input combinations tested |
+| **FSM** | All states and transitions visited |
+| **Toggle** | All bits toggled from 0→1→0 |
+
+⚠️ Code coverage shows *what was executed*, not *whether it was correct*.
+
+---
+
+🔹 2️⃣ Functional Coverage
+Functional coverage is **user-defined** — written using `covergroup`, `coverpoint`, and bins.
+
+It checks:
+- Have we exercised all design **features**?
+- Have all **data combinations and transitions** occurred?
+
+Example:
+covergroup cg @(posedge clk);
+  cp_mode : coverpoint mode;
+endgroup
+cg cov = new();
+✅ Captures all possible values of mode on each clock edge.
+---
+
+🔹 3️⃣ Covergroup
+A covergroup defines a coverage model and sampling event.
+
+covergroup cg @(posedge clk);
+  <coverpoints>
+  <cross coverage>
+endgroup
+
+Example:
+covergroup cg @(posedge clk);
+  cp_mode : coverpoint mode;
+  cp_en   : coverpoint enable;
+  cross cp_mode, cp_en;
+endgroup
+✅ Samples at every posedge of clk.
+---
+
+🔹 4️⃣ Coverpoint & Bins
+A coverpoint tracks values of a variable/expression.
+
+covergroup cg @(posedge clk);
+  cp_data : coverpoint data {
+    bins zero  = {0};
+    bins mid   = {[1:254]};
+    bins full  = {255};
+  }
+endgroup
+Term	            Meaning
+Bins	          Ranges or values you want to count
+Hit count	      How many times each bin occurred
+
+➡️ If you skip bin definitions, SystemVerilog auto-creates bins for small types.
+---
+
+🔹 5️⃣ Transition Bins
+Track how a signal changes between clock cycles.
+
+covergroup cg @(posedge clk);
+  cp_data : coverpoint data {
+    bins up   = (0 => 1);
+    bins down = (1 => 0);
+    bins seq  = (0 => 1 => 2);
+  }
+endgroup
+✅ Example use: FSM transitions, handshake signals.
+---
+
+🔹 6️⃣ Cross Coverage
+Cross coverage tracks combinations of coverpoints.
+
+covergroup cg @(posedge clk);
+  cp_mode : coverpoint mode;
+  cp_en   : coverpoint enable;
+  cross_mode_en : cross cp_mode, cp_en;
+endgroup
+If mode has 4 bins and enable has 2 bins → 8 combinations.
+---
+
+➕ Advanced Constructs
+Construct	                                       Description	                                                  Example
+iff	                                            Condition for sampling	                           cp_mode : coverpoint mode iff (reset_n);
+binsof	                                        Refers to bins from another coverpoint	           bins combo = binsof(cp1.high);
+intersect	                                      Select subset of bins by value range	             binsof(cp1) intersect {[10:20]};
+ignore_bins	                                    Exclude certain values                           	ignore_bins bad = binsof(cp1.low);
+illegal_bins	                                  Mark invalid combinations	                         illegal_bins err = binsof(cp2.high);
+---
+
+🔹 7️⃣ Coverage Methods
+Coverage objects have methods to control and query data.
+
+Method	                   Description
+.sample()	               Manually sample
+.get_inst_coverage()   	Get instance coverage %
+.start() / .stop()       	Enable/disable
+.set_inst_name()	        Rename for reports
+
+
+Example:
+
+cg cov = new();
+always @(posedge clk) cov.sample();
+$display("Coverage = %0.2f%%", cov.get_inst_coverage());
+---
+
+🔹 8️⃣ System Tasks & Functions
+Used to manage coverage globally in simulation.
+
+Task	                                       Purpose
+$get_coverage()	                          Overall coverage %
+$coverage_save("file.ucdb")             	Save coverage DB
+$set_coverage_db_name("file.ucdb")	       Set DB name
+$coverage_control("toggle","off")	         Enable/disable specific coverage types
+
+
+Example:
+initial begin
+  $set_coverage_db_name("func_cov.ucdb");
+  #100;
+  $display("Total Coverage = %0.2f%%", $get_coverage());
+  $coverage_save("func_cov.ucdb");
+end
+---
+
+🔹 9️⃣ Coverage Options
+Fine-tune coverage model using option.
+
+Option                        	Meaning	                        Example
+option.goal               	Target percentage	                  option.goal = 90;
+option.at_least            	Minimum hits per bin              	option.at_least = 2;
+option.per_instance	         Track per instance                	option.per_instance = 1;
+option.weight             	Weighted importance	                option.weight = 2;
+option.auto_bin_max	        Limit auto-created bins	            option.auto_bin_max = 16;
+
+Example:
+covergroup cg @(posedge clk);
+  option.goal = 90;
+  option.at_least = 2;
+  option.auto_bin_max = 8;
+  cp_data : coverpoint data;
+endgroup
+---
+
+🔹 🔟 Complete Example
+module tb;
+  logic clk = 0;
+  logic [3:0] mode;
+  logic enable;
+
+  always #5 clk = ~clk;
+
+  covergroup cg_mode_en @(posedge clk);
+    option.goal = 90;
+
+    cp_mode : coverpoint mode {
+      bins low  = {[0:1]};
+      bins high = {[2:3]};
+      bins trans = (0 => 1), (1 => 2);
+    }
+
+    cp_en : coverpoint enable {
+      bins on  = {1};
+      bins off = {0};
+    }
+
+    cross_mode_en : cross cp_mode, cp_en;
+  endgroup
+
+  cg_mode_en cov = new();
+
+  initial begin
+    repeat (10) begin
+      mode   = $urandom_range(0,3);
+      enable = $urandom_range(0,1);
+      @(posedge clk);
+    end
+
+    $display("Coverage = %0.2f%%", cov.get_inst_coverage());
+    $coverage_save("mode_en_cov.ucdb");
+    #10 $finish;
+  end
+endmodule
+
+✅ Captures:
+Value ranges of mode
+Transitions of mode
+Enable ON/OFF states
+All cross combinations
+---
+
+🔹 1️⃣1️⃣ Interview Highlights
+Question	                                                            Short Answer
+What is functional coverage?	                              Tracks if all design features were tested
+Code vs Functional Coverage?                                Code → RTL executed; Functional → functionality tested
+Covergroup?	                                                Container for coverpoints and crosses
+Transition bin?	                                             Tracks value changes (0⇒1, etc.)
+Cross coverage?	                                             Checks combinations of coverpoints
+option.at_least?                                            	Minimum hits required per bin
+$get_coverage()?	                                            Returns total coverage %
+iff in coverage?	                                            Condition for sampling
+ignore_bins / illegal_bins?	                                  Exclude or mark invalid bins
+---
+
+✅ Summary
+Concept	                                             Key Use
+Code Coverage	                                  Checks RTL execution paths
+Functional                                      Coverage	Checks feature verification
+Covergroup                                     	Defines coverage model
+Coverpoint	                                    Tracks variable values
+Transition bins	                                Track value changes
+Cross Coverage	                                Combines variables
+Coverage Methods	                              Control/query coverage
+System Tasks	                                  Save & control coverage globally
+Coverage Options	                              Fine-tune coverage settings
+
+-------------------------------------------------------------------------------------------
