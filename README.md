@@ -66,7 +66,9 @@ VS Code / Sublime Text for code organization and Git integration.<br>
 
 ---
 
-[![Cadence Certified](https://img.shields.io/badge/Cadence-SystemVerilog%20for%20Design%20%26%20Verification-blue?style=flat&logo=cadence)](https://www.credly.com/users/venkat-ramineni)
+## Certification
+
+[![Cadence Certified]  (https://img.shields.io/badge/Cadence-SystemVerilog%20for%20Design%20%26%20Verification-blue?style=flat&logo=cadence)](https://www.credly.com/users/venkat-ramineni)
 
 
 ---
