@@ -58,15 +58,15 @@ The repository follows a **bottom-up learning path** used in professional verifi
 
 ---
 
-##🧰 Tools Used
+## 🧰 Tools Used
 
-EDA Playground (online simulation for quick verification)
-Mentor QuestaSim, ModelSim, Synopsys VCS, Cadence Xcelium (for advanced simulations)
-VS Code / Sublime Text for code organization and Git integration
+EDA Playground (online simulation for quick verification).
+Mentor QuestaSim, ModelSim, Synopsys VCS, Cadence Xcelium (for advanced simulations).
+VS Code / Sublime Text for code organization and Git integration.
 
 ---
 
-##🎯 Objective
+## 🎯 Objective
 
 This repository serves as:
 A personal learning reference for advanced SystemVerilog concepts.
@@ -75,13 +75,13 @@ A showcase for recruiters/interviewers to demonstrate systematic skill-building 
 
 ---
 
-##🧩 Next Phase
+## 🧩 Next Phase
 
 🚀 Transition to UVM testbench construction, leveraging:
-Class inheritance & virtual interfaces
-Transaction-level communication
-Factory pattern & configuration DB
-Assertions + Coverage integration for closure
+Class inheritance & virtual interfaces.
+Transaction-level communication.
+Factory pattern & configuration DB.
+Assertions + Coverage integration for closure.
 
 ---
 
