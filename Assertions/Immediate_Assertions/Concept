@@ -3,12 +3,10 @@
 ===============================================================================
 
 🔹 1. WHAT ARE ASSERTIONS?
-Assertions are statements used to **check that the design behaves as expected** 
-based on given rules or specifications. They automatically verify design behavior 
-and report violations during simulation.
+Assertions are statements used to **check that the design behaves as expected** based on given rules or specifications. They automatically verify design behavior and report violations 
+during simulation.
 
-Assertions form the foundation of **Assertion-Based Verification (ABV)**, which 
-helps detect functional bugs early and reduces manual checking.
+Assertions form the foundation of **Assertion-Based Verification (ABV)**, which helps detect functional bugs early and reduces manual checking.
 
 ✅ Advantages:
   - Detect design errors early and automatically.
