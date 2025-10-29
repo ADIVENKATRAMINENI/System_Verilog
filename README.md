@@ -58,31 +58,13 @@ The repository follows a **bottom-up learning path** used in professional verifi
 
 ---
 
-## 🧩 Example Concept Snippet
-
-```systemverilog
-// Covergroup Example
-covergroup cg_reg @(posedge clk);
-  cp_data : coverpoint wr_data {
-    bins zero  = {8'h00};
-    bins mid   = {[8'h01:8'hFE]};
-    bins full  = {8'hFF};
-  }
-endgroup
-
-cg_reg cov = new();
-
-initial begin
-  wr_data = 8'h00; @(posedge clk);
-  wr_data = 8'h80; @(posedge clk);
-  wr_data = 8'hFF; @(posedge clk);
-end
 🧰 Tools Used
 EDA Playground (online simulation for quick verification)
 
-Synopsys VCS, Cadence Xcelium, Mentor QuestaSim (for advanced simulations)
+Mentor QuestaSim, ModelSim, Synopsys VCS, Cadence Xcelium (for advanced simulations)
 
 VS Code / Sublime Text for code organization and Git integration
+
 
 🎯 Objective
 This repository serves as:
@@ -92,6 +74,7 @@ A personal learning reference for advanced SystemVerilog concepts.
 A foundation to transition into UVM (Universal Verification Methodology).
 
 A showcase for recruiters/interviewers to demonstrate systematic skill-building in DV.
+
 
 🧩 Next Phase
 🚀 Transition to UVM testbench construction, leveraging:
@@ -104,11 +87,7 @@ Factory pattern & configuration DB
 
 Assertions + Coverage integration for closure
 
-🏁 Author
-AR
-🎓 M.S. in Computer Engineering, California State University, Northridge (3.81 GPA)
-🔬 Research & Teaching Assistant (Design Verification Focus)
-💼 Aspiring ASIC/SOC Design Verification Engineer
+
 
 💡 “Good verification is not just about finding bugs — it’s about proving there are none left.”
 
