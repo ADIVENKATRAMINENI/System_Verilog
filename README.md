@@ -32,7 +32,7 @@ Each folder covers a fundamental **SystemVerilog feature** that forms the founda
 
 ---
 
-## 🧮 Learning Path Summary
+## 🧮 Summary
 
 The repository follows a **bottom-up learning path** used in professional verification training:
 
@@ -47,7 +47,7 @@ The repository follows a **bottom-up learning path** used in professional verifi
 
 ---
 
-## 🧠 Key Takeaways for Design Verification
+## 🧠 Takeaways for Design Verification
 
 ✔️ SystemVerilog’s class-based features enable **reusability and scalability** in testbenches.  
 ✔️ Functional Coverage ensures **verification completeness**.  
